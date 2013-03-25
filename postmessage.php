@@ -14,7 +14,7 @@ $mysqli->query( $sql );
 
 if( $msg_type == 'alert' ){
   error_log("MAILING!!");
-  $to = '8168031981@txt.att.net';
+  $to = '1111111111@txt.att.net';
   $subject = "[{$msg_type}] from InBloomingOnion";
   $headers = 'From: webmaster@inbloomingonion.local';
   mail( $to, $subject, $message, $headers );
