@@ -20,7 +20,7 @@ function inbloom_curl_call( $url ){
   curl_setopt($ch, CURLOPT_HTTPGET, TRUE);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
-  if (DISABLE_SSL_CHECKS == TRUE) {
+  if ( DISABLE_SSL_CHECKS == TRUE) {
   // WARNING: this would prevent curl from detecting a 'man in the middle' attack
   // See note in settings.php 
     curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
@@ -58,6 +58,7 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
     <link rel="stylesheet"  href="jq-mobile/jquery.mobile-1.1.0.min.css" />
     <script src="jq-mobile/jquery-1.7.2.min.js"></script>
     <script src="jq-mobile/jquery.mobile-1.1.0.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script>
       $(function(){
         $(".submit").click( function(){
@@ -87,7 +88,7 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
   </head>
   <body>
     <div data-role="header" data-position="fixed" data-position="inline"> 
-	<h1>ClassView</h1> 
+	<h1>InBloomingOnion</h1> 
   <a href="start.php" data-rel="back" data-icon="back" class="ui-btn-right">Back</a>
 </div>
   <h2 style="text-align: center"><?php echo $student->name->firstName . ' ' . $student->name->lastSurname ?></h2>
@@ -99,35 +100,92 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
 <?php
     foreach( $attendances as $attendance ){
       foreach( $attendance->schoolYearAttendance as $schoolYear ){
-        if( $schoolYear->schoolYear )
-        echo "<div data-role='collapsible' data-collapsed='true'>";
-        echo "<h1>$schoolYear->schoolYear</h1>";
-        echo "<ul>";
+        $eventlist = "";
         foreach( $schoolYear->attendanceEvent as $event ){
           if( $event->event != "In Attendance" ){
-            echo "<li>$event->event on $event->date</li>";
+            $eventlist .= "<li>$event->event on $event->date";
+            $missedAssignments = inbloom_curl_call( "https://api.sandbox.inbloom.org/api/rest/v1.1/gradebookEntries?dateAssigned={$event->date}" );
+            foreach( $missedAssignments as $assignment ){
+              $eventlist .= "<ul>";
+              $eventlist .= "<li>Missed {$assignment->gradebookEntryType}</li>";
+              $eventlist .= "</ul>";
+            }
+            $eventlist .= "</li>";
           }
         }
-        echo "</ul>";
-        echo "</div>";
+        if( $eventlist == "" ){
+        } else {
+          echo "<div data-role='collapsible' data-collapsed='true'>";
+          echo "<h1>$schoolYear->schoolYear</h1>";
+          echo "<ul>";
+          echo $eventlist;
+          echo "</ul>";
+          echo "</div>";
+        }
       }
     }
 ?>
     </div>
   </div>
-  <div data-role='collapsible' data-collapsed='true'>
+  <div data-role='collapsible' data-collapsed='true' >
     <h1>Student Gradebook Entries</h1>
     <div data-role="collapsible-set" data-mini='true' data-theme='a' data-inset='false' id='mpage3'>
 <?php
       foreach( $gradebooks as $grade ){
         $section = inbloom_curl_call( "https://api.sandbox.inbloom.org/api/rest/v1.1/sections/".$grade->sectionId );
+        $gradeid = $grade->id;
         if( preg_match("/^(C|D|F)/i",$grade->letterGradeEarned) ){
           echo "<div data-role='collapsible' data-collapsed='true' data-theme='e'>";
         } else {
           echo "<div data-role='collapsible' data-collapsed='true'>";
         }
-        echo "<h1>$section->uniqueSectionCode</h1>";
+        echo "<h1>$section->uniqueSectionCode - $grade->letterGradeEarned</h1>";
         echo "<p>Letter Grade: $grade->letterGradeEarned earned on $grade->dateFulfilled</p>";
+        $othergrades = inbloom_curl_call( "https://api.sandbox.inbloom.org/api/rest/v1.1/studentGradebookEntries?gradebookEntryId=$grade->gradebookEntryId" );
+        //echo "Other Grades: ".print_r($othergrades);
+        $a = 0;
+        $b = 0;
+        $c = 0;
+        $d = 0;
+        $f = 0;
+        foreach( $othergrades as $othergrade ){
+          if (preg_match("/^A/i",$othergrade->letterGradeEarned)){
+            $a++;
+          } else if (preg_match("/^B/i",$othergrade->letterGradeEarned)){
+            $b++;
+          } else if (preg_match("/^C/i",$othergrade->letterGradeEarned)){
+            $c++;
+          } else if (preg_match("/^D/i",$othergrade->letterGradeEarned)){
+            $d++;
+          } else {
+            $f++;
+          }
+        }
+?>
+<script type='text/javascript'>
+  google.load('visualization','1', { packages:['corechart'], "callback":drawChart()});
+  google.setOnLoadCallback(drawChart);
+  function drawChart(){
+    var data = google.visualization.arrayToDataTable([
+      ['Grade Letter', 'Number of Grades'],
+      ['A',<?=$a?>],
+      ['B',<?=$b?>],
+      ['C',<?=$c?>],
+      ['D',<?=$d?>],
+      ['F',<?=$f?>]
+    ]);
+    var options = {
+      title: "Gradebook Entry Comparisons",
+      vAxis: { title: "Grade Entries" }
+    };
+
+    var chart= new google.visualization.BarChart(document.getElementById('chart_div-<?=$gradeid?>'));
+    chart.draw( data, options );
+  }
+</script>
+        <div id='chart_div-<?=$gradeid?>'></div>
+
+<?
         echo "</div>";
       }
 ?>
@@ -165,20 +223,23 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
     if( $results = $mysqli->query($sql) ){
       while( $row = $results->fetch_assoc() ){
         $userid = $row['userid'];
+        $usersend = mysqli_fetch_assoc(mysqli_query($mysqli,"SELECT * FROM users where id = {$row['sender']}"));
+        $userrec  = mysqli_fetch_assoc(mysqli_query($mysqli,"SELECT * FROM users where id = {$row['recipient']}"));
+    
         if( $row['message_type'] == 'alert' ){
           echo "<div data-role='header'>";
-          echo   "Sent Message on {$row['created_at']}";
+          echo   "ALERTED {$userrec['username']} on {$row['created_at']}";
           echo "</div>";
           echo "<div class='ui-body ui-body-e'>";
         }
         else if( $row['sender'] == $row['userid'] ){
           echo "<div data-role='header'>";
-          echo   "Sent Message on {$row['created_at']}";
+          echo   "Sent Message to {$userrec['username']} on {$row['created_at']}";
           echo "</div>";
           echo "<div class='ui-body ui-body-a'>";
         } else {
           echo "<div data-role='header'>";
-          echo   "Received Message on {$row['created_at']}";
+          echo   "Received Message from {$usersend['username']} on {$row['created_at']}";
           echo "</div>";
           echo "<div class='ui-body ui-body-c'>";
         }
@@ -239,7 +300,8 @@ function googleTranslateElementInit() {
     <div data-role="footer" data-position="fixed"> 
 	<h1></h1> 
 </div>
+    <script>
+      google.load('visualization','1', { packages:['corechart'], "callback":drawChart()});
+    </script>
   </body>
-
 </html>
-
