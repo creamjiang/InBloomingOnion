@@ -1,52 +1,55 @@
 <?php
 
+require_once('prepage.php');
 session_start();
-
-include 'settings.php';
 
 // If the session verification code is not set, redirect to the SLC Sandbox authorization endpoint
 if (!isset($_GET['code'])) {
-  $url = 'https://api.sandbox.inbloom.org/api/oauth/authorize?client_id=' . CLIENT_ID . '&redirect_uri=' . REDIRECT_URI;
-header('Location: ' . $url);
-    die('Redirect'); 
+  $url = "{$config['auth_endpoint']}".
+         "?client_id={$config['clientid']}".
+         "&redirect_uri={$config['redirecturi']}";
+  header('Location: ' . $url);
+  die('Redirect'); 
 } else {
-  
-session_start();
+  #session_start();
+  $url = "{$config['token_endpoint']}".
+         "?client_id={$config['clientid']}".
+         "&client_secret={$config['clientsecret']}".
+         "&grant_type=authorization_code".
+         "&redirect_uri={$config['redirecturi']}".
+         "&code={$_GET['code']}";
     
-$url = 'https://api.sandbox.inbloom.org/api/oauth/token?client_id=' . CLIENT_ID . '&client_secret=' . CLIENT_SECRET . '&grant_type=authorization_code&redirect_uri='.REDIRECT_URI.'&code='. $_GET['code'];
+  //open connection
+  $ch = curl_init();
 
+  //set the url, number of POST vars, POST data
+  curl_setopt($ch,CURLOPT_URL,$url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
-//open connection
-$ch = curl_init();
+  if ( $config['disable_ssl_check'] == TRUE) {
+    // WARNING: this would prevent curl from detecting a 'man in the middle' attack
+    // See note in settings.php 
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+  }
 
-//set the url, number of POST vars, POST data
-curl_setopt($ch,CURLOPT_URL,$url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+  curl_setopt($ch, CURLOPT_HEADER, 'Content-Type: application/vnd.slc+json');
+  curl_setopt($ch, CURLOPT_HEADER, 'Accept: application/vnd.slc+json');
 
-if (DISABLE_SSL_CHECKS == TRUE) {
-// WARNING: this would prevent curl from detecting a 'man in the middle' attack
-// See note in settings.php 
-  curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-  curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-}
+  //execute post
+  $result = curl_exec($ch);
 
-curl_setopt($ch, CURLOPT_HEADER, 'Content-Type: application/vnd.slc+json');
-curl_setopt($ch, CURLOPT_HEADER, 'Accept: application/vnd.slc+json');
+  //close connection
+  curl_close($ch);
 
-//execute post
-$result = curl_exec($ch);
+  // de-serialize the result into an object
+  $result = json_decode($result);
 
-//close connection
-curl_close($ch);
+  // set the session with the access_token and verification code
+  $_SESSION['access_token'] = $result->access_token;
+  $_SESSION['code'] = $_GET['code'];
 
-// de-serialize the result into an object
-$result = json_decode($result);
-
-// set the session with the access_token and verification code
-$_SESSION['access_token'] = $result->access_token;
-$_SESSION['code'] = $_GET['code'];
-
-// redirect to the start page of the application
-header('Location: ' . 'start.php');
+  // redirect to the start page of the application
+  header('Location: ' . 'start.php');
 }
 ?>

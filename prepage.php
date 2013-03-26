@@ -1,14 +1,11 @@
 <?php
-  $config['db_host'] = 'localhost';
-  $config['db_name'] = 'inbloom_local_data';
-  $config['db_user'] = 'inbloom';
-  $config['db_pass'] = 'inbloom';
+  require_once('../config/config.php');
 
-  $mysqli = new mysqli($config['db_host'],$config['db_user'],$config['db_pass'],
-                       $config['db_name']);
+  $mysqli = new mysqli($config['dbhost'],$config['dbuser'],$config['dbpass'],
+                       $config['dbname']);
 
   if (mysqli_connect_errno()) {
-    printf("Échec de la connexion : %s\n", mysqli_connect_error());
+    printf("MySQL Error: %s\n", mysqli_connect_error());
     exit();
   }
 
