@@ -30,5 +30,9 @@
   $config['sisapi'] = 'inbloom'; # inbloom, learnsprout, clever
   $config['clientid'] = '11111';
   $config['clientsecret'] = '22222';
+  $config['redirecturi'] = 'http://example.com';
+  $config['auth_endpoint'] = 'https://api.sandbox.inbloom.org/api/oauth/authorize';
+  $config['token_endpoint']= 'https://api.sandbox.inbloom.org/api/oauth/token';
+  $config['disable_ssl_check'] = false;
 
 ?>
