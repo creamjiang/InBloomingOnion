@@ -59,5 +59,8 @@ if (isset($_GET['code'])) {
         </a></center> 
       </div>
     </div>
-  </body>
-</html>
+    <br />
+    <center>
+    Download or Fork the project on Github at: <a href='https://github.com/jbkc85/InBloomingOnion'>github.com/jbkc85/InBloomingOnion</a>
+    </center>
+<?php require_once('postpage.php'); ?>
