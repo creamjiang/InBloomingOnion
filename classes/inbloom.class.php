@@ -2,7 +2,7 @@
 
 class InBloomingOnion{
   protected $access_token,$debug;
-  protected $apiurl = "https://apittendancesattendances.sandbox.inbloom.org/api/rest/v1/";
+  protected $apiurl = "https://api.sandbox.inbloom.org/api/rest/v1/";
   public function __construct( $access_token, $debug=false ){
     $this->access_token = $access_token;
     $this->debug = $debug;

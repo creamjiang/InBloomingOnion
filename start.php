@@ -64,22 +64,6 @@ curl_close($ch);
 
 
 ?>
-
-
-<html>
-  <head>
-    <link rel="stylesheet"  href="jq-mobile/jquery.mobile-1.1.0.min.css" />
-    <script src="jq-mobile/jquery-1.7.2.min.js"></script>
-    <script src="jq-mobile/jquery.mobile-1.1.0.min.js"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script>
-      google.load('visualization','1', { packages:['corechart'] });
-    </script>
-  </head>
-  <body>
-    <div data-role="header" data-position="fixed"> 
-	<h1>InBloomingOnion</h1> 
-</div>
     <ul data-role="listview" data-theme="g">
 
 
@@ -107,10 +91,4 @@ foreach ($json as $student) {
 }
 ?>
     </ul>
-    <div data-role="footer" data-position="fixed"> 
-	<h1></h1> 
-</div>
-  </body>
-
-</html>
-
+<?php require_once('postpage.php'); ?>

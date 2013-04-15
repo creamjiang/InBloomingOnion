@@ -53,13 +53,8 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
 
 ?>
 
-<html>
-  <head>
-    <link rel="stylesheet"  href="jq-mobile/jquery.mobile-1.1.0.min.css" />
-    <script src="jq-mobile/jquery-1.7.2.min.js"></script>
-    <script src="jq-mobile/jquery.mobile-1.1.0.min.js"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script>
+/**
       $(function(){
         $(".submit").click( function(){
           var msg_type = $("#message_type");
@@ -82,15 +77,8 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
           //return false;
         });
       });
-/**
  */
     </script>
-  </head>
-  <body>
-    <div data-role="header" data-position="fixed" data-position="inline"> 
-	<h1>InBloomingOnion</h1> 
-  <a href="start.php" data-rel="back" data-icon="back" class="ui-btn-right">Back</a>
-</div>
   <h2 style="text-align: center"><?php echo $student->name->firstName . ' ' . $student->name->lastSurname ?></h2>
 
   <div data-role"collapsible-set" data-mini="true" data-theme="a" data-inset="false" id="mpage">

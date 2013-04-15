@@ -1,17 +1,9 @@
 <?php
 
 require_once('prepage.php');
-session_start();
 
 // If the session verification code is not set, redirect to the SLC Sandbox authorization endpoint
-if (!isset($_GET['code'])) {
-  $url = "{$config['auth_endpoint']}".
-         "?client_id={$config['clientid']}".
-         "&redirect_uri={$config['redirecturi']}";
-  header('Location: ' . $url);
-  die('Redirect'); 
-} else {
-  #session_start();
+if (isset($_GET['code'])) {
   $url = "{$config['token_endpoint']}".
          "?client_id={$config['clientid']}".
          "&client_secret={$config['clientsecret']}".
@@ -52,4 +44,20 @@ if (!isset($_GET['code'])) {
   // redirect to the start page of the application
   header('Location: ' . 'start.php');
 }
+
 ?>
+    <h1>Please Login</h1>
+    <div id='logins' data-role='collapsible-set'>
+      <div id='saml' data-role='collapsible'>
+        <h3>Single Sign On for Students</h3>
+        <p>Coming Soon..</p>
+      </div>
+      <div id='staff' data-role='collapsible'>
+        <h3>School Faculty and Staff</h3>
+        <center><a href='/login.php' rel='external'>
+          <img src='/images/inbloom-logo.jpg' />
+        </a></center> 
+      </div>
+    </div>
+  </body>
+</html>
