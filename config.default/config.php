@@ -15,6 +15,8 @@
   // contact information is shown in footer for support/request calls
   $config['emailcontact'] = 'info@example.com';
   $config['phonecontact'] = '(888)-888-8888';
+  // Change the saltyonion to your own salt!
+  $config['inbloomingonionsalt'] = 'saltyonion';
 
 /**
  * Database Credentials
