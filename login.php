@@ -2,7 +2,9 @@
 
 require_once('prepage.php');
 
-echo "Found the following: {$_REQUEST['method']}";
+if($_SESSION['salt']!=sha1("{$config['inbloomingonionsalt']}".date("m.d.y"))){
+  header("Location: index.php");
+}
 
 // First we verify if the method chosen for logging in is SAML or OAuth
 if ( isset( $_POST['method'] ) ){
@@ -55,7 +57,7 @@ if ( isset( $_POST['method'] ) ){
       $_SESSION['code'] = $_GET['code'];
 
       // redirect to the start page of the application
-      header('Location: ' . 'start.php');
+      header('Location: dashboard.php');
     }
   }
 }
@@ -107,7 +109,7 @@ else if (!isset($_GET['code'])) {
   $_SESSION['code'] = $_GET['code'];
 
   // redirect to the start page of the application
-  header('Location: ' . 'start.php');
+  header('Location: dashboard.php');
 }
 ?>
 

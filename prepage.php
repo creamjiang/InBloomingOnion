@@ -12,6 +12,12 @@
   }
   $dontincludebackbtn = array('/start.php','/index.php','/');
 
+  function return_to_index(){
+    if( !isset($_SESSION['code']) || $_SESSION['code'] = '' ){
+      Header("Location: index.php");
+    }
+  }
+
 ?>
 
 <html>

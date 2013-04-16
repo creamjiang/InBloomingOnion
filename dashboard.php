@@ -1,7 +1,6 @@
 <?php
 require_once('prepage.php');
-
-session_start();
+return_to_index();
 
 //open connection
 $ch = curl_init();

@@ -1,51 +1,28 @@
 <?php
 require_once('prepage.php');
-session_start();
+return_to_index();
 
-function inbloom_curl_call( $url ){
-  $ch = curl_init();
-  $token = $_SESSION['access_token'];
-  $code = $_SESSION['code'];
-  $auth = sprintf('Authorization: bearer %s', $token);
-  $headers = array(
-    'Content-Type: application/vnd.slc+json',
-    'Accept: application/vnd.slc+json',
-    $auth);
-  error_log( "Authorization: $auth" );
-
-  curl_setopt($ch, CURLOPT_URL, $url);
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-  curl_setopt($ch, CURLOPT_POST, FALSE);
-  curl_setopt($ch, CURLOPT_HTTPGET, TRUE);
-  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-
-  if ( DISABLE_SSL_CHECKS == TRUE) {
-  // WARNING: this would prevent curl from detecting a 'man in the middle' attack
-  // See note in settings.php 
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-  }
-
-  $result = curl_exec($ch);
-  curl_close($ch);
-  return json_decode( $result );
-}
+$api = new InBloomingOnion( $_SESSION['access_token'] );
 
 $url = sprintf('https://api.sandbox.inbloom.org/api/rest/v1/students/%s', $_GET['UUID']);
-$student = inbloom_curl_call( $url );
+//$student = inbloom_curl_call( $url );
+$student = $api->inBloomApiCall( $url );
 
 $attendances_url = sprintf('https://api.sandbox.inbloom.org/api/rest/v1/students/%s/attendances',$_GET['UUID']);
-$attendances = inbloom_curl_call( $attendances_url );
+//$attendances = inbloom_curl_call( $attendances_url );
+$attendances = $api->inBloomApiCall( $attendances_url );
 
 $assessments_url = ('https://api.sandbox.inbloom.org/api/rest/v1/studentAssessments');
-$assessments = inbloom_curl_call( $assessments_url );
+//$assessments = inbloom_curl_call( $assessments_url );
+$assessments = $api->inBloomApiCall( $assessments_url );
 
 $discipline_url = ('https://api.sandbox.inbloom.org/api/rest/v1/studentDisciplineIncidentAssociations');
-$disciplines = inbloom_curl_call( $discipline_url );
+//$disciplines = inbloom_curl_call( $discipline_url );
+$disciplines = $api->inBloomApiCall( $discipline_url );
 
 $gradebook_url = sprintf('https://api.sandbox.inbloom.org/api/rest/v1/students/%s/studentGradebookEntries',$_GET['UUID']);
-$gradebooks = inbloom_curl_call( $gradebook_url );
+//$gradebooks = inbloom_curl_call( $gradebook_url );
+$gradebooks = $api->inBloomApiCall( $gradebook_url );
 
 include_once( "openbadges.class.php" );
 $obadge = new openBadgeDisplay( "http://beta.openbadges.org" );
@@ -92,7 +69,7 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
         foreach( $schoolYear->attendanceEvent as $event ){
           if( $event->event != "In Attendance" ){
             $eventlist .= "<li>$event->event on $event->date";
-            $missedAssignments = inbloom_curl_call( "https://api.sandbox.inbloom.org/api/rest/v1.1/gradebookEntries?dateAssigned={$event->date}" );
+            $missedAssignments = $api->inBloomApiCall( "https://api.sandbox.inbloom.org/api/rest/v1.1/gradebookEntries?dateAssigned={$event->date}" );
             foreach( $missedAssignments as $assignment ){
               $eventlist .= "<ul>";
               $eventlist .= "<li>Missed {$assignment->gradebookEntryType}</li>";
@@ -120,7 +97,7 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
     <div data-role="collapsible-set" data-mini='true' data-theme='a' data-inset='false' id='mpage3'>
 <?php
       foreach( $gradebooks as $grade ){
-        $section = inbloom_curl_call( "https://api.sandbox.inbloom.org/api/rest/v1.1/sections/".$grade->sectionId );
+        $section = $api->inBloomApiCall( "https://api.sandbox.inbloom.org/api/rest/v1.1/sections/".$grade->sectionId );
         $gradeid = $grade->id;
         if( preg_match("/^(C|D|F)/i",$grade->letterGradeEarned) ){
           echo "<div data-role='collapsible' data-collapsed='true' data-theme='e'>";
@@ -129,7 +106,7 @@ $groups = $obadge->findGroups( "jbkc85@gmail.com" );
         }
         echo "<h1>$section->uniqueSectionCode - $grade->letterGradeEarned</h1>";
         echo "<p>Letter Grade: $grade->letterGradeEarned earned on $grade->dateFulfilled</p>";
-        $othergrades = inbloom_curl_call( "https://api.sandbox.inbloom.org/api/rest/v1.1/studentGradebookEntries?gradebookEntryId=$grade->gradebookEntryId" );
+        $othergrades = $api->inBloomApiCall( "https://api.sandbox.inbloom.org/api/rest/v1.1/studentGradebookEntries?gradebookEntryId=$grade->gradebookEntryId" );
         //echo "Other Grades: ".print_r($othergrades);
         $a = 0;
         $b = 0;
